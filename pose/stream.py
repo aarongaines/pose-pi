@@ -88,10 +88,6 @@ async def send_frames():
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    cameras = list_available_cameras()
-    if cameras:
-        print(f"Available cameras: {cameras}")
-        asyncio.run(send_frames())
-    else:
-        print("No cameras found.")
+    asyncio.run(send_frames())
+
     
