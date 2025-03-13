@@ -3,6 +3,7 @@ import cv2
 import websockets
 import numpy as np
 import json
+import socket
 
 import draw
 

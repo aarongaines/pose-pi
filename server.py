@@ -2,6 +2,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 import uvicorn
 import numpy as np
 import cv2
+import socket
 
 from pose import rtmo
 
@@ -72,4 +73,6 @@ async def websocket_endpoint(websocket: WebSocket):
         print("Client disconnected")
 
 if __name__ == "__main__":
+    local_ip = socket.gethostbyname(socket.gethostname())
+    print(f"Server is running on IP: {local_ip}")
     uvicorn.run(app, host="0.0.0.0", port=5000)
