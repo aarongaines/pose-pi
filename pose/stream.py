@@ -3,10 +3,10 @@ import cv2
 import websockets
 import numpy as np
 
-from pose import draw
+import draw
 
 # Adjust to your server IP/port
-SERVER_URI = "ws://<SERVER_IP>:5000/ws"
+SERVER_URI = "ws://192.168.1.145:5000/ws"
 
 # Suppose your kiosk is also 1920x1080 (the original camera size).
 # The server is expecting 640x640 images for inference.
@@ -27,6 +27,17 @@ def resize_and_pad(image, target_size=(416, 416)): # Ignore for now
     padded_image[pad_h:pad_h+new_h, pad_w:pad_w+new_w, :] = resized_image
 
     return padded_image
+
+def list_available_cameras(max_index=10):
+    available_cameras = []
+    for index in range(max_index):
+        cap = cv2.VideoCapture(index)
+        if cap.isOpened():
+            available_cameras.append(index)
+            cap.release()
+    return available_cameras
+
+
 
 
 async def send_frames():
@@ -77,4 +88,10 @@ async def send_frames():
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    asyncio.run(send_frames())
+    cameras = list_available_cameras()
+    if cameras:
+        print(f"Available cameras: {cameras}")
+        asyncio.run(send_frames())
+    else:
+        print("No cameras found.")
+    

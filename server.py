@@ -55,14 +55,14 @@ async def websocket_endpoint(websocket: WebSocket):
 
                 bboxes_original.append((x1_orig, y1_orig, x2_orig, y2_orig, bbox[4]))
             
+                keypoints_for_bbox = []
                 for j, (x_640, y_640, conf) in enumerate(keypoints[i]):
                     if conf < THRESHOLD:
                         continue
                     x_orig = int(x_640 * scale_x)
                     y_orig = int(y_640 * scale_y)
-                    keypoints_original.append((x_orig, y_orig, conf))
-            
-
+                    keypoints_for_bbox.append((x_orig, y_orig, conf))
+                keypoints_original.append(keypoints_for_bbox)
 
             # Send the BBoxes and Keypoints back to the client
             # as a JSON array
