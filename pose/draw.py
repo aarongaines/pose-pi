@@ -58,7 +58,6 @@ def get_keypoint_color(index):
         return KEYPOINT_COLORS["torso"]
     
 
-# Draw the bounding boxes, keypoints, and edges
 def draw_bboxes_keypoints(image, bboxes, keypoints, threshold=0.5):
     image = image.copy()
     
@@ -69,6 +68,11 @@ def draw_bboxes_keypoints(image, bboxes, keypoints, threshold=0.5):
         # Draw the bounding box index
         cv2.putText(image, str(i), (bbox.x1, bbox.y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
             
+        # Check if keypoints[i] exists and has the expected structure
+        if i >= len(keypoints) or not isinstance(keypoints[i], list):
+            print(f"Error: Keypoints for bbox {i} are missing or not in the expected format.")
+            continue
+
         # Draw keypoints
         for j, (x, y, conf) in enumerate(keypoints[i]):
             if conf > threshold:  # Only draw keypoints with confidence > threshold
@@ -77,6 +81,9 @@ def draw_bboxes_keypoints(image, bboxes, keypoints, threshold=0.5):
         
         # Draw edges
         for edge in COCO_EDGES:
+            if edge[0] >= len(keypoints[i]) or edge[1] >= len(keypoints[i]):
+                print(f"Error: Edge {edge} for bbox {i} is out of range.")
+                continue
             pt1 = keypoints[i][edge[0]]
             pt2 = keypoints[i][edge[1]]
             if pt1[2] > threshold and pt2[2] > threshold:  # Only draw edges if both keypoints have confidence > threshold
