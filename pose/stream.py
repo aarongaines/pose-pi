@@ -35,7 +35,7 @@ async def send_frames():
         print("Could not open webcam.")
         return
 
-    async with websockets.connect(SERVER_URI) as websocket:35
+    async with websockets.connect(SERVER_URI) as websocket:
         while True:
             ret, frame = cap.read()
             if not ret:
