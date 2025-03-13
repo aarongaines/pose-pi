@@ -2,6 +2,7 @@ import asyncio
 import cv2
 import websockets
 import numpy as np
+import json
 
 import draw
 
@@ -38,56 +39,50 @@ def list_available_cameras(max_index=10):
     return available_cameras
 
 
-
-
 async def send_frames():
     cap = cv2.VideoCapture(0)  # or the index of your camera
     if not cap.isOpened():
         print("Could not open webcam.")
         return
 
-    async with websockets.connect(SERVER_URI) as websocket:
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                print("Failed to read frame from camera.")
-                break
+    try:
+        async with websockets.connect(SERVER_URI) as websocket:
+            print("Connected to server")
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    print("Failed to read frame from camera.")
+                    break
 
-            original_frame = frame.copy()  # keep a copy at 1920x1080
+                original_frame = frame.copy()  # keep a copy at 1920x1080
 
-            # 1) Resize to 640x640 (simple squish) for minimal bandwidth
-            frame_640 = cv2.resize(frame, (RESIZED_W, RESIZED_H))
+                # 1) Resize to 640x640 (simple squish) for minimal bandwidth
+                frame_640 = cv2.resize(frame, (RESIZED_W, RESIZED_H))
 
-            # 2) Encode as JPEG in-memory
-            success, encoded = cv2.imencode(".jpg", frame_640)
-            if not success:
-                print("Failed to encode frame.")
-                continue
+                # 2) Encode as JPEG in-memory
+                success, encoded = cv2.imencode(".jpg", frame_640)
+                if not success:
+                    print("Failed to encode frame.")
+                    continue
 
-            # 3) Send raw bytes over WebSocket
-            await websocket.send(encoded.tobytes())
+                # 3) Send raw bytes over WebSocket
+                await websocket.send(encoded.tobytes())
 
-            # 4) Receive keypoints from server (JSON array)
-            #    e.g.: [ [x1, y1, conf1], [x2, y2, conf2], ... ]
-            data = await websocket.recv()
-            # optional: import json; keypoints = json.loads(data)
-            # but websockets with send_json might already decode it depending on usage
-            # Usually you'd do:
-            # keypoints = json.loads(data)
-            import json
-            bboxes, keypoints = json.loads(data)
+                # 4) Receive keypoints from server (JSON array)
+                data = await websocket.recv()
+                bboxes, keypoints = json.loads(data)
 
-            frame = draw.draw_bboxes_keypoints(frame, bboxes, keypoints)
+                frame = draw.draw_bboxes_keypoints(frame, bboxes, keypoints)
 
-            # 6) Display locally
-            cv2.imshow("Pose Estimation", original_frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+                # 6) Display locally
+                cv2.imshow("Pose Estimation", original_frame)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+    except Exception as e:
+        print(f"Failed to connect to server: {e}")
 
     cap.release()
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
     asyncio.run(send_frames())
-
-    
