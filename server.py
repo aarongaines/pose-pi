@@ -7,7 +7,7 @@ from pose import rtmo
 
 app = FastAPI()
 
-model_path = "models/pose.onnx"
+model_path = "models/rtmo-s_8xb32-600e_body7-640x640-dac2bf74_20231211/end2end.onnx"
 session, session_info = rtmo.load_session(model_path)
 
 
